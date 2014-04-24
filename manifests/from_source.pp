@@ -26,13 +26,32 @@ class owncloud::from_source () {
     grant    => ['ALL'],
   }
 
+  file { '/var/www':
+    owner    => 'www-data',
+    mode     => 655,
+    group    => 'www-data',
+    ensure   => directory,
+  }
+
   include 'git'
   vcsrepo { '/var/www/owncloud':
     ensure   => present,
     provider => git,
     source   => 'https://github.com/owncloud/core.git',
     revision => 'master',
-    require  => Class['git'],
+    user     => 'www-data',
+    require  => [
+      Class['git'],
+      File['/var/www']
+    ],
+    notify   => File['/var/www/owncloud/data'],
+  }
+
+  file { '/var/www/owncloud/data':
+    owner    => 'www-data',
+    mode     => 770,
+    group    => 'www-data',
+    ensure   => directory,
   }
 
   vcsrepo { '/var/www/3rdparty':
@@ -40,7 +59,11 @@ class owncloud::from_source () {
     provider => git,
     source   => 'https://github.com/owncloud/3rdparty.git',
     revision => 'master',
-    require  => Class['git'],
+    user     => 'www-data',
+    require  => [
+      Class['git'],
+      File['/var/www']
+    ],
   }
 
   vcsrepo { '/var/www/apps':
@@ -48,6 +71,10 @@ class owncloud::from_source () {
     provider => git,
     source   => 'https://github.com/owncloud/apps.git',
     revision => 'master',
-    require  => Class['git'],
+    user     => 'www-data',
+    require  => [
+      Class['git'],
+      File['/var/www']
+    ],
   }
 }
